@@ -1,0 +1,116 @@
+#include <iostream>
+#include <algorithm>
+#include <string>
+
+using namespace std;
+
+#define MAX_STUDENTS 15
+
+struct Student {
+    int rollNo;
+    string name;
+    float sgpa;
+};
+
+void arrangeByRollNo(Student students[], int numStudents) {
+    for (int i = 0; i < numStudents - 1; ++i) {
+        for (int j = 0; j < numStudents - i - 1; ++j) {
+            if (students[j].rollNo > students[j + 1].rollNo) {
+                swap(students[j], students[j + 1]);
+            }
+        }
+    }
+}
+
+void arrangeByNameInsertionSort(Student students[], int numStudents) {
+    for (int i = 1; i < numStudents; ++i) {
+        Student key = students[i];
+        int j = i - 1;
+
+        while (j >= 0 && students[j].name > key.name) {
+            students[j + 1] = students[j];
+            --j;
+        }
+        students[j + 1] = key;
+    }
+}
+
+void searchBySGPA(Student students[], int numStudents, float targetSGPA) {
+    bool found = false;
+
+    for (int i = 0; i < numStudents; ++i) {
+        if (students[i].sgpa == targetSGPA) {
+            found = true;
+            cout << "Student found with SGPA " << targetSGPA << ":\n";
+            cout << "Roll No: " << students[i].rollNo << "\n";
+            cout << "Name: " << students[i].name << "\n";
+            cout << "SGPA: " << students[i].sgpa << "\n\n";
+        }
+    }
+
+    if (!found) {
+        cout << "No student found with SGPA " << targetSGPA << "\n\n";
+    }
+}
+
+int searchByNameBinary(const Student students[], int left, int right, const string& targetName) {
+    while (left <= right) {
+        int mid = left + (right - left) / 2;
+
+        if (students[mid].name == targetName) {
+            return mid;
+        }
+
+        if (students[mid].name < targetName) {
+            left = mid + 1;
+        } else {
+            right = mid - 1;
+        }
+    }
+
+    return -1;
+}
+
+int main() {
+    Student students[MAX_STUDENTS] = {
+        {102, "Alice", 3.8},
+        {101, "Bob", 3.5},
+        // Add more student records here...
+    };
+
+    int numStudents = sizeof(students) / sizeof(students[0]);
+
+    arrangeByRollNo(students, numStudents);
+
+    cout << "Roll Call List (Sorted by Roll No):\n";
+    for (int i = 0; i < numStudents; ++i) {
+        cout << "Roll No: " << students[i].rollNo << ", Name: " << students[i].name
+             << ", SGPA: " << students[i].sgpa << "\n";
+    }
+    cout << "\n";
+
+    float targetSGPA;
+    cout << "Enter SGPA to search for: ";
+    cin >> targetSGPA;
+
+    searchBySGPA(students, numStudents, targetSGPA);
+
+    arrangeByNameInsertionSort(students, numStudents);
+
+    string targetName;
+    cout << "Enter name to search for: ";
+    cin >> targetName;
+
+    int index = searchByNameBinary(students, 0, numStudents - 1, targetName);
+
+    if (index != -1) {
+        cout << "Student found at index " << index << ":\n";
+        cout << "Roll No: " << students[index].rollNo << "\n";
+        cout << "Name: " << students[index].name << "\n";
+        cout << "SGPA: " << students[index].sgpa << "\n";
+    } else {
+        cout << "Student with name '" << targetName << "' not found.\n";
+    }
+
+    return 0;
+}

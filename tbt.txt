@@ -1,0 +1,150 @@
+#include <iostream>
+
+using namespace std;
+
+struct TreeNode {
+    int data;
+    TreeNode* left;
+    TreeNode* right;
+    bool isThreaded;
+};
+
+TreeNode* createNode(int value) {
+    TreeNode* newNode = new TreeNode;
+    newNode->data = value;
+    newNode->left = newNode->right = nullptr;
+    newNode->isThreaded = false;
+    return newNode;
+}
+
+// Function to insert a node in the threaded binary tree
+void insert(TreeNode*& root, int value) {
+    TreeNode* newNode = createNode(value);
+
+    if (!root) {
+        root = newNode;
+        return;
+    }
+
+    TreeNode* current = root;
+    TreeNode* parent = nullptr;
+
+    while (current) {
+        parent = current;
+
+        if (value < current->data) {
+            if (current->left) {
+                current = current->left;
+            } else {
+                current->left = newNode;
+                newNode->right = current;
+                newNode->isThreaded = true;
+                return;
+            }
+        } else {
+            if (current->isThreaded || !current->right) {
+                newNode->left = current->right;
+                current->right = newNode;
+                current->isThreaded = false;
+                newNode->isThreaded = true;
+                return;
+            } else {
+                current = current->right;
+            }
+        }
+    }
+}
+
+// Function to perform inorder traversal of threaded binary tree
+void inorderTraversal(TreeNode* root) {
+    TreeNode* current = root;
+
+    while (current) {
+        while (current->left) {
+            current = current->left;
+        }
+
+        cout << current->data << " ";
+
+        if (current->isThreaded) {
+            current = current->right;
+        } else {
+            while (current->right && !current->right->isThreaded) {
+                current = current->right;
+                cout << current->data << " ";
+            }
+            current = current->right;
+        }
+    }
+}
+
+// Function to perform postorder traversal of threaded binary tree
+void postorderTraversal(TreeNode* root) {
+    if (!root) {
+        return;
+    }
+
+    TreeNode* current = root;
+
+    while (current->left || current->right) {
+        if (current->left) {
+            current = current->left;
+        } else {
+            cout << current->data << " ";
+            current = current->right;
+        }
+    }
+
+    cout << current->data << " ";
+}
+
+// Function to perform preorder traversal of threaded binary tree
+void preorderTraversal(TreeNode* root) {
+    if (!root) {
+        return;
+    }
+
+    TreeNode* current = root;
+
+    while (current) {
+        cout << current->data << " ";
+
+        if (current->left) {
+            current = current->left;
+        } else if (current->isThreaded) {
+            current = current->right;
+        } else {
+            while (current->right && !current->right->isThreaded) {
+                current = current->right;
+                cout << current->data << " ";
+            }
+            current = current->right;
+        }
+    }
+}
+
+int main() {
+    TreeNode* root = nullptr;
+
+    insert(root, 10);
+    insert(root, 5);
+    insert(root, 15);
+    insert(root, 3);
+    insert(root, 8);
+    insert(root, 12);
+    insert(root, 18);
+
+    cout << "Inorder Traversal: ";
+    inorderTraversal(root);
+    cout << endl;
+
+    cout << "Postorder Traversal: ";
+    postorderTraversal(root);
+    cout << endl;
+
+    cout << "Preorder Traversal: ";
+    preorderTraversal(root);
+    cout << endl;
+
+    return 0;
+}

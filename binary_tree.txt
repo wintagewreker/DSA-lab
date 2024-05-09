@@ -1,0 +1,242 @@
+#include <iostream>
+#include <queue>
+
+class Node {
+public:
+    int data;
+    Node* left;
+    Node* right;
+
+    Node(int value) : data(value), left(nullptr), right(nullptr) {}
+};
+
+class BinaryTree {
+private:
+    Node* root;
+
+    Node* insert(Node* root, int value) {
+        if (root == nullptr) {
+            return new Node(value);
+        }
+
+        if (value < root->data) {
+            root->left = insert(root->left, value);
+        } else if (value > root->data) {
+            root->right = insert(root->right, value);
+        }
+
+        return root;
+    }
+
+    Node* findMin(Node* root) {
+        while (root->left != nullptr) {
+            root = root->left;
+        }
+        return root;
+    }
+
+    Node* remove(Node* root, int value) {
+        if (root == nullptr) {
+            return nullptr;
+        }
+
+        if (value < root->data) {
+            root->left = remove(root->left, value);
+        } else if (value > root->data) {
+            root->right = remove(root->right, value);
+        } else {
+            if (root->left == nullptr) {
+                Node* temp = root->right;
+                delete root;
+                return temp;
+            } else if (root->right == nullptr) {
+                Node* temp = root->left;
+                delete root;
+                return temp;
+            }
+
+            Node* temp = findMin(root->right);
+            root->data = temp->data;
+            root->right = remove(root->right, temp->data);
+        }
+
+        return root;
+    }
+
+    Node* search(Node* root, int value) {
+        if (root == nullptr || root->data == value) {
+            return root;
+        }
+
+        if (value < root->data) {
+            return search(root->left, value);
+        }
+
+        return search(root->right, value);
+    }
+
+    void display(Node* root) {
+        if (root != nullptr) {
+            display(root->left);
+            std::cout << root->data << " ";
+            display(root->right);
+        }
+    }
+
+    Node* mirror(Node* root) {
+        if (root == nullptr) {
+            return nullptr;
+        }
+
+        Node* temp = root->left;
+        root->left = mirror(root->right);
+        root->right = mirror(temp);
+
+        return root;
+    }
+
+    int depth(Node* root) {
+        if (root == nullptr) {
+            return 0;
+        }
+
+        int leftDepth = depth(root->left);
+        int rightDepth = depth(root->right);
+
+        return 1 + std::max(leftDepth, rightDepth);
+    }
+
+    void displayLevelWise(Node* root) {
+        if (root == nullptr) {
+            return;
+        }
+
+        std::queue<Node*> q;
+        q.push(root);
+
+        while (!q.empty()) {
+            Node* current = q.front();
+            q.pop();
+
+            std::cout << current->data << " ";
+
+            if (current->left != nullptr) {
+                q.push(current->left);
+            }
+
+            if (current->right != nullptr) {
+                q.push(current->right);
+            }
+        }
+    }
+
+    void displayLeafNodes(Node* root) {
+        if (root != nullptr) {
+            if (root->left == nullptr && root->right == nullptr) {
+                std::cout << root->data << " ";
+            }
+
+            displayLeafNodes(root->left);
+            displayLeafNodes(root->right);
+        }
+    }
+
+    Node* copyTree(Node* root) {
+        if (root == nullptr) {
+            return nullptr;
+        }
+
+        Node* newNode = new Node(root->data);
+        newNode->left = copyTree(root->left);
+        newNode->right = copyTree(root->right);
+
+        return newNode;
+    }
+
+public:
+    BinaryTree() : root(nullptr) {}
+
+    void insert(int value) {
+        root = insert(root, value);
+    }
+
+    void remove(int value) {
+        root = remove(root, value);
+    }
+
+    bool search(int value) {
+        return search(root, value) != nullptr;
+    }
+
+    void display() {
+        display(root);
+        std::cout << std::endl;
+    }
+
+    void displayMirrorImage() {
+        root = mirror(root);
+        display(root);
+        root = mirror(root); // Restore the original tree
+        std::cout << std::endl;
+    }
+
+    int getDepth() {
+        return depth(root);
+    }
+
+    void displayLeafNodes() {
+        displayLeafNodes(root);
+        std::cout << std::endl;
+    }
+
+    BinaryTree copy() {
+        BinaryTree copyTree;
+        copyTree.root = copyTree(root);
+        return copyTree;
+    }
+
+    void displayLevelWise() {
+        displayLevelWise(root);
+        std::cout << std::endl;
+    }
+};
+
+int main() {
+    BinaryTree tree;
+
+    tree.insert(50);
+    tree.insert(30);
+    tree.insert(70);
+    tree.insert(20);
+    tree.insert(40);
+    tree.insert(60);
+    tree.insert(80);
+
+    std::cout << "Original Tree: ";
+    tree.display();
+
+    int searchValue = 40;
+    std::cout << "Search for " << searchValue << ": " << (tree.search(searchValue) ? "Found" : "Not Found") << std::endl;
+
+    int removeValue = 30;
+    tree.remove(removeValue);
+    std::cout << "Tree after removing " << removeValue << ": ";
+    tree.display();
+
+    std::cout << "Depth of the tree: " << tree.getDepth() << std::endl;
+
+    std::cout << "Leaf Nodes: ";
+    tree.displayLeafNodes();
+
+    std::cout << "Mirror Image of the Tree: ";
+    tree.displayMirrorImage();
+
+    std::cout << "Level-Wise Display: ";
+    tree.displayLevelWise();
+
+    BinaryTree copiedTree = tree.copy();
+    std::cout << "Copied Tree: ";
+    copiedTree.display();
+
+    return 0;
+}

@@ -1,0 +1,161 @@
+#include <iostream>
+#include <fstream>
+#include <cstdlib>
+
+using namespace std;
+
+struct Student {
+    int rollNumber;
+    string name;
+    string division;
+    string address;
+};
+
+ifstream openInputFile(const char* filename) {
+    ifstream inFile(filename, ios::binary | ios::in);
+    if (!inFile) {
+        cout << "Error opening input file: " << filename << endl;
+        exit(EXIT_FAILURE);
+    }
+    return inFile;
+}
+
+ofstream openOutputFile(const char* filename) {
+    ofstream outFile(filename, ios::binary | ios::app);
+    if (!outFile) {
+        cerr << "Error opening output file: " << filename << endl;
+        exit(EXIT_FAILURE);
+    }
+    return outFile;
+}
+
+void closeFile(fstream& file, const char* filename) {
+    file.close();
+    if (file.fail()) {
+        cerr << "Error closing file: " << filename << endl;
+        exit(EXIT_FAILURE);
+    }
+}
+
+void closeFile(ofstream& file, const char* filename) {
+    file.close();
+    if (file.fail()) {
+        cerr << "Error closing file: " << filename << endl;
+        exit(EXIT_FAILURE);
+    }
+}
+
+void addStudent(ofstream& file) {
+    Student newStudent;
+
+    cout << "Enter Roll Number: ";
+    cin >> newStudent.rollNumber;
+    cout << "Enter Name: ";
+    cin.ignore();
+    getline(cin, newStudent.name);
+    cout << "Enter Division: ";
+    getline(cin, newStudent.division);
+    cout << "Enter Address: ";
+    getline(cin, newStudent.address);
+
+    file.write(reinterpret_cast<char*>(&newStudent), sizeof(Student));
+
+    cout << "Student added successfully.\n";
+}
+
+void deleteStudent(fstream& file, int rollNumberToDelete) {
+    Student currentStudent;
+    ofstream tempFile("temp.dat", ios::binary | ios::out);
+
+    while (file.read(reinterpret_cast<char*>(&currentStudent), sizeof(Student))) {
+        if (currentStudent.rollNumber == rollNumberToDelete) {
+            cout << "Student found and deleted successfully.\n";
+        } else {
+            tempFile.write(reinterpret_cast<char*>(&currentStudent), sizeof(Student));
+        }
+    }
+
+    file.close();
+    remove("students.dat");
+    tempFile.close();
+    rename("temp.dat", "students.dat");
+
+    if (file.eof()) {
+        file.clear();
+    }
+}
+
+void displayStudent(ifstream& file, int rollNumberToDisplay) {
+    Student currentStudent;
+    bool found = false;
+
+    while (file.read(reinterpret_cast<char*>(&currentStudent), sizeof(Student))) {
+        if (currentStudent.rollNumber == rollNumberToDisplay) {
+            cout << "Student Details:\n";
+            cout << "Roll Number: " << currentStudent.rollNumber << "\n";
+            cout << "Name: " << currentStudent.name << "\n";
+            cout << "Division: " << currentStudent.division << "\n";
+            cout << "Address: " << currentStudent.address << "\n";
+            found = true;
+            break;
+        }
+    }
+
+    if (!found) {
+        cout << "Student with Roll Number " << rollNumberToDisplay << " not found.\n";
+    }
+}
+
+int main() {
+    int choice;
+
+    do {
+        cout << "\nStudent Database Management System\n";
+        cout << "1. Add Student\n";
+        cout << "2. Delete Student\n";
+        cout << "3. Display Student\n";
+        cout << "4. Exit\n";
+        cout << "Enter your choice (1-4): ";
+
+        cin >> choice;
+
+        switch (choice) {
+            case 1: {
+                ofstream outFile = openOutputFile("students.dat");
+                addStudent(outFile);
+                closeFile(outFile, "students.dat");
+                break;
+            }
+            case 2: {
+                fstream file("students.dat", ios::binary | ios::in | ios::out);
+                int rollNumberToDelete;
+                cout << "Enter Roll Number to delete: ";
+                cin >> rollNumberToDelete;
+                deleteStudent(file, rollNumberToDelete);
+                break;
+            }
+            case 3: {
+                ifstream inFile("students.dat", ios::binary);
+                int rollNumberToDisplay;
+                cout << "Enter Roll Number to display: ";
+                cin >> rollNumberToDisplay;
+                displayStudent(inFile, rollNumberToDisplay);
+                inFile.close();
+                break;
+            }
+            case 4:
+                cout << "Exiting the program.\n";
+                break;
+            default:
+                cout << "Invalid choice. Please enter a valid option.\n";
+        }
+
+        if (choice != 4) {
+            cout << "Do you want to perform another operation? (1 for Yes, 0 for No): ";
+            cin >> choice;
+        }
+
+    } while (choice == 1);
+
+    return 0;
+}
